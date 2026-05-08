@@ -1,119 +1,85 @@
 # CIMS — Cybersecurity Incident Management System
-## PHP + MySQL Setup Guide
+
+A full-stack web application for managing cybersecurity incidents, assets, vulnerabilities, 
+and threat actors — built with **PHP**, **MySQL**, and **Vanilla JavaScript**.
+
+Developed as a DBMS course project.
 
 ---
 
-## Folder Structure
+## Features
 
-```
-cims/
-├── index.html          ← Main frontend (your HTML/CSS/JS)
-├── style.css           ← Your CSS (paste from original file)
-├── includes/
-│   └── db.php          ← DB connection config
-└── api/
-    ├── auth.php        ← Login / Register
-    ├── incidents.php   ← Incidents CRUD
-    ├── assets.php      ← Assets CRUD
-    └── data.php        ← Vulns, Threats, Responses, Logs, Users, Dashboard
-```
+- 🔐 **Authentication** — Login & Register with role-based access (Admin / Analyst)
+- 🚨 **Incident Management** — Create, update, delete, and filter incidents by severity/status
+- 🖥️ **Asset Tracking** — Manage organizational assets and link them to incidents
+- ⚠️ **Vulnerability & Threat Monitoring** — Track vulnerabilities and threat actors
+- 📊 **Dashboard** — Live stats via stored procedure `sp_dashboard_stats`
+- 📜 **System Logs** — Audit trail of all activity
+- 🔒 **Optimistic Locking** — Prevents concurrent update conflicts using version field
 
 ---
 
-## Step 1 — Run the SQL
+## Tech Stack
 
-1. Open **phpMyAdmin** (or MySQL Workbench / CLI)
-2. Create the database and run your SQL file:
-   ```sql
-   CREATE DATABASE DBMS_project;
-   USE DBMS_project;
-   -- Then paste/run your full SQL script
-   ```
-3. This creates all tables, triggers, views, stored procedures, and sample data.
-
----
-
-## Step 2 — Configure DB Connection
-
-Edit `includes/db.php`:
-```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');       // your MySQL username
-define('DB_PASS', '');           // your MySQL password
-define('DB_NAME', 'DBMS_project');
-```
-
----
-
-## Step 3 — Add Your CSS
-
-Open `index.html` and replace:
-```html
-<link rel="stylesheet" href="style.css">
-```
-Or paste your full `<style>` block from the original HTML into `index.html`.
-
----
-
-## Step 4 — Place in Web Server
-
-**Using XAMPP / WAMP / MAMP:**
-- Copy the `cims/` folder into `htdocs/` (XAMPP) or `www/` (WAMP)
-- Start Apache + MySQL
-- Open browser: `http://localhost/cims/`
-
-**Using VS Code Live Server:**
-- Does NOT work for PHP files
-- Must use XAMPP/WAMP or PHP CLI:
-  ```bash
-  cd cims
-  php -S localhost:8000
-  ```
-  Then open `http://localhost:8000`
-
----
-
-## API Reference
-
-| Method | URL | What it does |
-|--------|-----|-------------|
-| POST | `api/auth.php` | Login (`action: login`) or Register (`action: register`) |
-| GET | `api/incidents.php?severity=Critical&status=Open&search=sql` | Get filtered incidents |
-| POST | `api/incidents.php` | Create incident (calls `sp_add_incident`) |
-| PUT | `api/incidents.php` | Update incident (uses optimistic locking via `version`) |
-| DELETE | `api/incidents.php` | Delete incident (cascades to junction tables) |
-| GET | `api/assets.php` | Get assets |
-| POST/PUT/DELETE | `api/assets.php` | Asset CRUD |
-| GET | `api/data.php?entity=dashboard` | Dashboard stats (calls `sp_dashboard_stats`) |
-| GET | `api/data.php?entity=vulnerabilities` | Get vulnerabilities |
-| GET | `api/data.php?entity=threats` | Get threat actors |
-| GET | `api/data.php?entity=responses` | Get response actions |
-| GET | `api/data.php?entity=logs` | Get system logs |
-| GET | `api/data.php?entity=users` | Get users |
-| POST | `api/data.php` | Create record (pass `entity` in body) |
-| PUT | `api/data.php?entity=X` | Update record |
-| DELETE | `api/data.php?entity=X` | Delete record |
-
----
-
-## Login Credentials (from seeded data)
-
-| Email | Password | Role |
-|-------|----------|------|
-| neha@mail.com | pass123 | Admin |
-| karan@mail.com | pass123 | Analyst |
-| himanshi@mail.com | pass123 | Admin |
-
-> ⚠️ Passwords in your SQL inserts are plain text. For production, use `password_hash()` in PHP and `password_verify()` on login.
+| Layer      | Technology          |
+|------------|---------------------|
+| Frontend   | HTML, CSS, JavaScript |
+| Backend    | PHP (REST API)      |
+| Database   | MySQL               |
+| Server     | Apache via XAMPP    |
 
 ---
 
 ## SQL Features Used
 
-- **Views:** `vw_incident_summary`, `vw_asset_owner`, `vw_response_detail`, `vw_critical_open`
-- **Stored Procedures:** `sp_add_incident`, `sp_get_incidents`, `sp_dashboard_stats`
-- **Trigger:** `update_version` fires on every `UPDATE Incidents` — auto-increments version
-- **Transactions:** Used in `sp_add_incident` for atomic multi-table inserts
-- **Optimistic Locking:** PUT /incidents checks `version` before updating
-- **Cascade Deletes:** Deleting incident removes junction table rows automatically
-- **Indexes:** `idx_incident_severity`, `idx_incident_status`, `idx_asset_type`, etc.
+- **Views** — `vw_incident_summary`, `vw_asset_owner`, `vw_critical_open`, etc.
+- **Stored Procedures** — `sp_add_incident`, `sp_get_incidents`, `sp_dashboard_stats`
+- **Triggers** — `update_version` auto-increments version on every UPDATE
+- **Transactions** — Atomic multi-table inserts in `sp_add_incident`
+- **Cascade Deletes** — Junction table rows removed automatically
+- **Indexes** — On severity, status, asset type for faster queries
+
+---
+
+## How to Run (XAMPP)
+
+1. **Download & install** [XAMPP](https://www.apachefriends.org/)
+2. **Copy project** into `C:/xampp/htdocs/cims/`
+3. **Start** Apache and MySQL from XAMPP Control Panel
+4. **Open phpMyAdmin** → `http://localhost/phpmyadmin`
+5. Create database and run your SQL script:
+```sql
+   CREATE DATABASE DBMS_project;
+   USE DBMS_project;
+   -- Run your full SQL file here
+```
+6. Edit `includes/db.php` with your MySQL credentials (default: root, no password)
+7. Open browser → `http://localhost/cims/`
+
+---
+
+## Demo Login Credentials
+
+| Email              | Password | Role    |
+|--------------------|----------|---------|
+| neha@mail.com      | pass123  | Admin   |
+| karan@mail.com     | pass123  | Analyst |
+| himanshi@mail.com  | pass123  | Admin   |
+
+---
+
+## Project Structure
+
+```
+cims/
+├── index.html        ← Main frontend (SPA)
+├── style.css         ← Styling
+├── script.js         ← All frontend logic
+├── includes/
+│   └── db.php        ← Database connection config
+└── api/
+    ├── auth.php      ← Login / Register
+    ├── incidents.php ← Incidents CRUD
+    ├── assets.php    ← Assets CRUD
+    └── data.php      ← Vulnerabilities, Threats, Responses, Logs, Dashboard
+```
