@@ -29,6 +29,7 @@ We built the frontend using **HTML, CSS, and JavaScript**, and the backend as a 
 To run this project locally, we used **XAMPP** — a free tool that sets up Apache and MySQL on your Windows machine without any manual configuration.
 
 **1️⃣ Install XAMPP**
+
 We downloaded and installed XAMPP from [apachefriends.org](https://www.apachefriends.org/). Once installed, we opened the **XAMPP Control Panel** and clicked **Start** next to both **Apache** and **MySQL** — Apache serves our PHP files, MySQL runs the database.
 
 **2️⃣ Place the Project Files**
