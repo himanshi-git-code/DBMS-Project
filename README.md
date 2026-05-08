@@ -1,7 +1,8 @@
 # CIMS — Cybersecurity Incident Management System
 
-CIMS is a web-based application we built as part of our DBMS course project. The idea was
-to create a system where a security team can track and manage cybersecurity incidents —
+A web-based Cybersecurity Incident Management System built for the Database Management System (DBMS) course at BML Munjal University (2026).
+
+The idea was to create a system where a security team can track and manage cybersecurity incidents —
 things like data breaches, malware attacks, or unauthorized access attempts — all from
 one place.
 
@@ -14,6 +15,17 @@ We built the frontend using plain HTML, CSS, and JavaScript, and the backend as 
 PHP REST API connected to a MySQL database. The project also covers several advanced
 SQL concepts — stored procedures, triggers, views, transactions, and optimistic locking.
 
+---
+
+## SQL Features Used
+
+- **Views:** `vw_incident_summary`, `vw_asset_owner`, `vw_response_detail`, `vw_critical_open`
+- **Stored Procedures:** `sp_add_incident`, `sp_get_incidents`, `sp_dashboard_stats`
+- **Trigger:** `update_version` fires on every `UPDATE Incidents` — auto-increments version
+- **Transactions:** Used in `sp_add_incident` for atomic multi-table inserts
+- **Optimistic Locking:** PUT /incidents checks `version` before updating
+- **Cascade Deletes:** Deleting incident removes junction table rows automatically
+- **Indexes:** `idx_incident_severity`, `idx_incident_status`, `idx_asset_type`, etc.
 ---
 
 ## How to Run
@@ -44,14 +56,4 @@ so no changes were needed there.
 **Finally**, we opened `http://localhost/cims/` in the browser — the frontend
 loaded through Apache and all API calls connected to MySQL in the background.
 
----
 
-## SQL Features Used
-
-- **Views:** `vw_incident_summary`, `vw_asset_owner`, `vw_response_detail`, `vw_critical_open`
-- **Stored Procedures:** `sp_add_incident`, `sp_get_incidents`, `sp_dashboard_stats`
-- **Trigger:** `update_version` fires on every `UPDATE Incidents` — auto-increments version
-- **Transactions:** Used in `sp_add_incident` for atomic multi-table inserts
-- **Optimistic Locking:** PUT /incidents checks `version` before updating
-- **Cascade Deletes:** Deleting incident removes junction table rows automatically
-- **Indexes:** `idx_incident_severity`, `idx_incident_status`, `idx_asset_type`, etc.
