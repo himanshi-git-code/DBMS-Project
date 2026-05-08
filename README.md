@@ -51,3 +51,11 @@ We updated `includes/db.php` with the database credentials. XAMPP's default MySQ
 **5️⃣ Open in Browser**
 
 We opened `http://localhost/cims/` in the browser — the frontend loaded through Apache and all API calls connected to MySQL in the background.
+
+## 👥 Contributors
+
+| Name | GitHub |
+|------|--------|
+| Himanshi | [@himanshi-git-code](https://github.com/himanshi-git-code) |
+| Harsha Anvitha | [@harsha-516](https://github.com/harsha-516) |
+
