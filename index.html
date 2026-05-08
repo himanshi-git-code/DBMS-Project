@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIMS — Cybersecurity Incident Management</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#03080f;--bg2:#070e1a;--card:#0a1525;--card2:#0e1c30;
+  --a:#00d9f5;--a2:#6c5ce7;--a3:#fd4f6d;--ag:rgba(0,217,245,0.12);
+  --txt:#ddeef7;--dim:#5a7a96;--bdr:rgba(0,217,245,0.1);--bdrh:rgba(0,217,245,0.3);
+  --ok:#00c896;--warn:#f7b731;--err:#fd4f6d;--sw:250px;--hh:62px;
+}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 15% -5%,rgba(0,217,245,0.06) 0%,transparent 55%),radial-gradient(ellipse 55% 40% at 85% 105%,rgba(108,92,231,0.06) 0%,transparent 55%);pointer-events:none;z-index:0}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--a);border-radius:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,217,245,0.4)}50%{box-shadow:0 0 0 8px rgba(0,217,245,0)}}
+
+/* AUTH */
+.auth-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#03080f 0%,#07122a 50%,#0a0a1a 100%);display:flex;align-items:center;justify-content:center;z-index:2000;animation:fadeUp 0.4s ease}
+.auth-box{width:90%;max-width:420px;background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--bdr);border-radius:22px;padding:2.5rem;box-shadow:0 40px 80px rgba(0,0,0,0.7);animation:slideUp 0.4s ease}
+.auth-logo{text-align:center;margin-bottom:2rem}
+.auth-logo .icon{width:72px;height:72px;margin:0 auto 1rem;background:linear-gradient(135deg,var(--a),var(--a2));border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;box-shadow:0 12px 35px rgba(0,217,245,0.25);animation:pulse 2.5s infinite}
+.auth-logo h1{font-family:'Orbitron',monospace;font-size:1.9rem;color:var(--txt);letter-spacing:3px}
+.auth-logo p{color:var(--dim);font-size:0.85rem;margin-top:.3rem}
+.tabs{display:flex;margin-bottom:1.8rem;background:rgba(0,217,245,0.04);border:1px solid var(--bdr);border-radius:12px;padding:4px}
+.tabs button{flex:1;padding:10px;border:none;background:none;color:var(--dim);font-family:'Sora',sans-serif;font-size:.9rem;font-weight:600;border-radius:9px;cursor:pointer;transition:all .25s}
+.tabs button.on{background:linear-gradient(90deg,var(--a),var(--a2));color:#fff;box-shadow:0 4px 15px rgba(0,217,245,0.2)}
+.auth-panel{display:none}
+.auth-panel.on{display:block}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:1rem}
+.fg label{font-size:.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.fi{position:relative}
+.fi i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--a);font-size:.85rem}
+.fi input,.fi select{width:100%;padding:12px 12px 12px 38px;background:rgba(0,217,245,0.03);border:1px solid var(--bdr);border-radius:10px;color:var(--txt);font-family:'Sora',sans-serif;font-size:.92rem;transition:all .2s}
+.fi input:focus,.fi select:focus{outline:none;border-color:var(--a);background:rgba(0,217,245,0.06);box-shadow:0 0 0 3px var(--ag)}
+.fi input::placeholder{color:var(--dim)}
+.fi select option{background:var(--card)}
+.abtn{width:100%;padding:14px;background:linear-gradient(90deg,var(--a),var(--a2));border:none;border-radius:11px;color:#fff;font-family:'Sora',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;margin-top:.5rem;letter-spacing:.5px}
+.abtn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,217,245,0.3)}
+.hint{font-size:.78rem;color:var(--dim);margin-top:.8rem;padding:.6rem 1rem;background:rgba(0,217,245,0.04);border:1px solid var(--bdr);border-radius:8px;line-height:1.5}
+.hint strong{color:var(--a)}
+
+/* APP */
+#app{display:none;height:100vh;flex-direction:column}
+#app.on{display:flex}
+header{height:var(--hh);background:linear-gradient(90deg,var(--card),var(--card2));border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:fixed;top:0;left:0;right:0;z-index:900;box-shadow:0 4px 25px rgba(0,0,0,0.4)}
+.hl{display:flex;align-items:center;gap:1rem}
+.mb{background:none;border:1px solid var(--bdr);color:var(--a);padding:8px 10px;border-radius:8px;cursor:pointer;font-size:1rem;transition:all .2s}
+.mb:hover{background:var(--ag)}
+.logo{display:flex;align-items:center;gap:9px}
+.logo i{color:var(--a);font-size:1.4rem}
+.logo span{font-family:'Orbitron',monospace;font-size:1.2rem;letter-spacing:2px}
+.hr2{display:flex;align-items:center;gap:.8rem}
+.ubadge{display:flex;align-items:center;gap:8px;background:rgba(0,217,245,0.05);border:1px solid var(--bdr);padding:6px 13px;border-radius:10px;font-size:.88rem}
+.ubadge i{color:var(--a)}
+.rtag{background:rgba(108,92,231,0.2);color:var(--a2);border:1px solid rgba(108,92,231,0.3);padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:700}
+.lbtn{background:rgba(253,79,109,0.1);border:1px solid rgba(253,79,109,0.3);color:var(--err);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.95rem;transition:all .2s}
+.lbtn:hover{background:var(--err);color:#fff}
+nav.sidebar{width:var(--sw);background:linear-gradient(180deg,var(--card) 0%,var(--bg2) 100%);border-right:1px solid var(--bdr);position:fixed;top:var(--hh);left:0;height:calc(100vh - var(--hh));overflow-y:auto;z-index:800;padding:1.2rem 0;transition:transform .3s ease}
+nav.sidebar ul{list-style:none}
+nav.sidebar a{display:flex;align-items:center;gap:11px;padding:11px 20px;color:var(--dim);text-decoration:none;font-size:.88rem;font-weight:500;transition:all .2s;border-left:3px solid transparent}
+nav.sidebar a:hover{background:var(--ag);color:var(--a);border-left-color:var(--a)}
+nav.sidebar a.active{background:rgba(0,217,245,0.08);color:var(--a);border-left-color:var(--a)}
+nav.sidebar i{width:18px;text-align:center}
+.nav-sep{padding:8px 20px 4px;font-size:.65rem;color:rgba(90,122,150,0.5);text-transform:uppercase;letter-spacing:2px;font-weight:700}
+main{margin-left:var(--sw);margin-top:var(--hh);padding:2rem;min-height:calc(100vh - var(--hh));position:relative;z-index:1}
+
+/* PAGES */
+.page{animation:fadeUp .35s ease}
+.page.hidden{display:none}
+.pg-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+.pg-title{font-family:'Orbitron',monospace;font-size:1.2rem;color:var(--a);display:flex;align-items:center;gap:10px}
+.pg-title i{opacity:.75}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:1.1rem;margin-bottom:2rem}
+.scard{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--bdr);border-radius:14px;padding:1.4rem;display:flex;align-items:center;gap:1rem;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.scard::before{content:'';position:absolute;inset:0;background:var(--ag);opacity:0;transition:.3s}
+.scard:hover{border-color:var(--bdrh);transform:translateY(-3px)}
+.scard:hover::before{opacity:1}
+.scard.crit .si{color:var(--err)}
+.scard.crit{border-color:rgba(253,79,109,0.2)}
+.si{font-size:1.9rem;color:var(--a);opacity:.9;width:46px;text-align:center}
+.sv h3{font-family:'Orbitron',monospace;font-size:1.8rem;color:var(--a);line-height:1}
+.sv p{color:var(--dim);font-size:.8rem;margin-top:3px}
+.fbar{display:flex;gap:.9rem;margin-bottom:1.1rem;flex-wrap:wrap}
+.fbar input,.fbar select{padding:9px 14px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-family:'Sora',sans-serif;font-size:.88rem;transition:all .2s}
+.fbar input{flex:1;min-width:200px}
+.fbar input:focus,.fbar select:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 2px var(--ag)}
+.fbar input::placeholder{color:var(--dim)}
+.fbar select option{background:var(--card)}
+.tc{background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px}
+th,td{padding:11px 15px;text-align:left;border-bottom:1px solid var(--bdr);font-size:.86rem}
+th{background:rgba(0,217,245,0.06);color:var(--a);font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:1px}
+tr:hover td{background:rgba(0,217,245,0.03)}
+tr:last-child td{border-bottom:none}
+td{color:var(--txt)}
+.idbadge{font-family:'Orbitron',monospace;font-size:.7rem;color:var(--dim);background:rgba(0,217,245,0.05);padding:2px 7px;border-radius:5px}
+code{color:var(--a);background:rgba(0,217,245,0.07);padding:2px 6px;border-radius:4px;font-size:.82rem}
+.badge{padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.5px;display:inline-block}
+.b-low{background:rgba(0,200,150,0.14);color:var(--ok);border:1px solid rgba(0,200,150,0.28)}
+.b-med{background:rgba(247,183,49,0.14);color:var(--warn);border:1px solid rgba(247,183,49,0.28)}
+.b-high{background:rgba(255,120,50,0.14);color:#ff8232;border:1px solid rgba(255,120,50,0.28)}
+.b-crit{background:rgba(253,79,109,0.14);color:var(--err);border:1px solid rgba(253,79,109,0.28)}
+.b-open{background:rgba(253,79,109,0.14);color:var(--err);border:1px solid rgba(253,79,109,0.28)}
+.b-prog{background:rgba(0,217,245,0.14);color:var(--a);border:1px solid rgba(0,217,245,0.28)}
+.b-res{background:rgba(0,200,150,0.14);color:var(--ok);border:1px solid rgba(0,200,150,0.28)}
+.b-cls{background:rgba(90,122,150,0.14);color:var(--dim);border:1px solid rgba(90,122,150,0.28)}
+.ab{background:none;border:1px solid var(--bdr);color:var(--dim);padding:5px 9px;border-radius:6px;cursor:pointer;font-size:.78rem;transition:all .2s;margin-right:3px}
+.ab:hover{border-color:var(--a);color:var(--a);background:var(--ag)}
+.ab.d{border-color:rgba(253,79,109,0.28);color:rgba(253,79,109,0.6)}
+.ab.d:hover{background:rgba(253,79,109,0.12);color:var(--err);border-color:var(--err)}
+.btn{padding:9px 18px;border:none;border-radius:8px;font-family:'Sora',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .3s;letter-spacing:.3px}
+.btn-p{background:linear-gradient(90deg,var(--a),var(--a2));color:#fff}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,217,245,0.22)}
+.btn-s{background:linear-gradient(90deg,var(--a2),#8b6fff);color:#fff}
+.btn-s:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(108,92,231,0.22)}
+.empty{text-align:center;padding:2.5rem;color:var(--dim)}
+.empty i{font-size:2.5rem;opacity:.25;display:block;margin-bottom:.8rem}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:1500;animation:fadeUp .25s ease}
+.modal.off{display:none}
+.mcontent{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--bdr);border-radius:20px;padding:2rem;width:90%;max-width:700px;box-shadow:0 30px 70px rgba(0,0,0,.6);animation:slideUp .3s ease;max-height:90vh;overflow-y:auto}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--bdr)}
+.mhdr h3{font-family:'Orbitron',monospace;font-size:1rem;color:var(--a)}
+.cbtn{background:rgba(253,79,109,.1);border:1px solid rgba(253,79,109,.3);color:var(--err);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:.9rem;transition:all .2s}
+.cbtn:hover{background:var(--err);color:#fff}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.fgrid .full{grid-column:1/-1}
+.fg2{display:flex;flex-direction:column;gap:5px}
+.fg2 label{font-size:.73rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.fg2 input,.fg2 select,.fg2 textarea{padding:10px 13px;background:rgba(0,217,245,.03);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-family:'Sora',sans-serif;font-size:.88rem;transition:all .2s}
+.fg2 textarea{resize:vertical;min-height:70px}
+.fg2 input:focus,.fg2 select:focus,.fg2 textarea:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 2px var(--ag);background:rgba(0,217,245,.06)}
+.fg2 input::placeholder,.fg2 textarea::placeholder{color:rgba(90,122,150,.5)}
+.fg2 select option{background:var(--card)}
+.fact{display:flex;justify-content:flex-end;gap:.8rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--bdr)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.di{background:rgba(0,217,245,.03);border:1px solid var(--bdr);border-radius:8px;padding:11px}
+.di label{display:block;font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.di span{color:var(--txt);font-size:.9rem}
+.di.full{grid-column:1/-1}
+.recent-sec h3{font-family:'Orbitron',monospace;font-size:.88rem;color:var(--dim);margin-bottom:.9rem;display:flex;align-items:center;gap:7px}
+.notif{position:fixed;top:76px;right:18px;z-index:9999;padding:11px 18px;border-radius:10px;font-family:'Sora',sans-serif;font-weight:700;font-size:.88rem;animation:slideUp .3s ease;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.notif.ok{background:rgba(0,200,150,.13);border:1px solid rgba(0,200,150,.35);color:var(--ok)}
+.notif.err{background:rgba(253,79,109,.13);border:1px solid rgba(253,79,109,.35);color:var(--err)}
+@media(max-width:768px){
+  nav.sidebar{transform:translateX(-100%)}
+  nav.sidebar.open{transform:translateX(0)}
+  main{margin-left:0}
+  .sgrid{grid-template-columns:1fr 1fr}
+  .fgrid,.dgrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="icon"><i class="fas fa-shield-halved"></i></div>
+      <h1>CIMS</h1>
+      <p>Cybersecurity Incident Management System</p>
+    </div>
+    <div class="tabs">
+      <button class="on" onclick="authTab('login')">Login</button>
+      <button onclick="authTab('signup')">Register</button>
+    </div>
+    <div class="auth-panel on" id="panLogin">
+      <div class="fg"><label>Email Address</label>
+        <div class="fi"><i class="fas fa-envelope"></i><input type="email" id="lEmail" placeholder="your@email.com"></div>
+      </div>
+      <div class="fg"><label>Password</label>
+        <div class="fi"><i class="fas fa-lock"></i><input type="password" id="lPass" placeholder="Enter password"></div>
+      </div>
+      <button class="abtn" onclick="doLogin()"><i class="fas fa-right-to-bracket"></i> Secure Login</button>
+      <div class="hint">
+        <strong>Demo Admin:</strong> himanshi@mail.com / pass123<br>
+        <strong>Demo User:</strong> harsha@mail.com / pass123
+      </div>
+    </div>
+    <div class="auth-panel" id="panSignup">
+      <div class="fg"><label>Full Name *</label>
+        <div class="fi"><i class="fas fa-user"></i><input type="text" id="sName" placeholder="e.g. Rahul Sharma"></div>
+      </div>
+      <div class="fg"><label>Email *</label>
+        <div class="fi"><i class="fas fa-envelope"></i><input type="email" id="sEmail" placeholder="your@email.com"></div>
+      </div>
+      <div class="fg"><label>Password *</label>
+        <div class="fi"><i class="fas fa-lock"></i><input type="password" id="sPass" placeholder="Create password"></div>
+      </div>
+      <div class="fg"><label>Phone</label>
+        <div class="fi"><i class="fas fa-phone"></i><input type="text" id="sPhone" placeholder="+91 9876543210"></div>
+      </div>
+      <div class="fg"><label>Department *</label>
+        <div class="fi"><i class="fas fa-building"></i>
+          <select id="sDept">
+            <option value="">— Select —</option>
+            <option>SOC</option><option>IT</option><option>Security</option>
+            <option>HR</option><option>Finance</option><option>Operations</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Role *</label>
+        <div class="fi"><i class="fas fa-user-tag"></i>
+          <select id="sRole">
+            <option value="">— Select —</option>
+            <option>Analyst</option><option>Manager</option><option>Admin</option>
+          </select>
+        </div>
+      </div>
+      <button class="abtn" onclick="doSignup()"><i class="fas fa-user-plus"></i> Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header>
+    <div class="hl">
+      <button class="mb" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="logo"><i class="fas fa-shield-halved"></i><span>CIMS</span></div>
+    </div>
+    <div class="hr2">
+      <div class="ubadge">
+        <i class="fas fa-circle-user"></i>
+        <span id="uName"></span>
+        <span class="rtag" id="uRole"></span>
+      </div>
+      <button class="lbtn" onclick="doLogout()"><i class="fas fa-right-from-bracket"></i></button>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sb">
+    <ul>
+      <li><span class="nav-sep">Overview</span></li>
+      <li><a href="#" data-pg="dashboard"><i class="fas fa-gauge-high"></i><span>Dashboard</span></a></li>
+      <li><span class="nav-sep">Manage</span></li>
+      <li><a href="#" data-pg="incidents"><i class="fas fa-triangle-exclamation"></i><span>Incidents</span></a></li>
+      <li><a href="#" data-pg="assets"><i class="fas fa-server"></i><span>Assets</span></a></li>
+      <li><a href="#" data-pg="vulnerabilities"><i class="fas fa-bug"></i><span>Vulnerabilities</span></a></li>
+      <li><a href="#" data-pg="threats"><i class="fas fa-user-secret"></i><span>Threat Actors</span></a></li>
+      <li><a href="#" data-pg="responses"><i class="fas fa-shield-virus"></i><span>Response Actions</span></a></li>
+      <li><a href="#" data-pg="logs"><i class="fas fa-list-check"></i><span>System Logs</span></a></li>
+      <li><a href="#" data-pg="users"><i class="fas fa-users"></i><span>Users</span></a></li>
+    </ul>
+  </nav>
+
+  <main id="mc">
+
+    <!-- DASHBOARD -->
+    <div id="pg-dashboard" class="page hidden">
+      <div class="pg-hd"><div class="pg-title"><i class="fas fa-gauge-high"></i> Dashboard</div></div>
+      <div class="sgrid">
+        <div class="scard" onclick="goPage('incidents')"><div class="si"><i class="fas fa-triangle-exclamation"></i></div><div class="sv"><h3 id="d-inc">—</h3><p>Total Incidents</p></div></div>
+        <div class="scard crit" onclick="goPage('incidents');setTimeout(()=>{document.getElementById('inc-sev').value='Critical';loadIncidents();},100)"><div class="si"><i class="fas fa-skull-crossbones"></i></div><div class="sv"><h3 id="d-crit">—</h3><p>Critical Incidents</p></div></div>
+        <div class="scard" onclick="goPage('assets')"><div class="si"><i class="fas fa-server"></i></div><div class="sv"><h3 id="d-assets">—</h3><p>Total Assets</p></div></div>
+        <div class="scard" onclick="goPage('vulnerabilities')"><div class="si"><i class="fas fa-bug"></i></div><div class="sv"><h3 id="d-vulns">—</h3><p>Vulnerabilities</p></div></div>
+        <div class="scard" onclick="goPage('threats')"><div class="si"><i class="fas fa-user-secret"></i></div><div class="sv"><h3 id="d-threats">—</h3><p>Threat Actors</p></div></div>
+        <div class="scard" onclick="goPage('users')"><div class="si"><i class="fas fa-users"></i></div><div class="sv"><h3 id="d-users">—</h3><p>Active Users</p></div></div>
+      </div>
+      <div class="recent-sec">
+        <h3><i class="fas fa-clock-rotate-left"></i> Recent Incidents</h3>
+        <div class="tc"><table id="dash-tbl">
+          <thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody><tr><td colspan="5" style="text-align:center;color:var(--dim)">Loading...</td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- INCIDENTS -->
+    <div id="pg-incidents" class="page hidden">
+      <div class="pg-hd">
+        <div class="pg-title"><i class="fas fa-triangle-exclamation"></i> Incidents</div>
+        <button class="btn btn-p" onclick="openIncidentForm()"><i class="fas fa-plus"></i> New Incident</button>
+      </div>
+      <div class="fbar">
+        <input type="text" id="inc-q" placeholder="Search by title..." oninput="loadIncidents()">
+        <select id="inc-sev" onchange="loadIncidents()">
+          <option value="">All Severities</option>
+          <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
+        </select>
+        <select id="inc-sta" onchange="loadIncidents()">
+          <option value="">All Statuses</option>
+          <option>Open</option><option>In Progress</option><option>Resolved</option>
+        </select>
+      </div>
+      <div class="tc"><table id="inc-tbl">
+        <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Severity</th><th>Status</th><th>Asset</th><th>Reporter</th><th>Date</th><th>Ver</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+    <!-- ASSETS -->
+    <div id="pg-assets" class="page hidden">
+      <div class="pg-hd">
+        <div class="pg-title"><i class="fas fa-server"></i> Assets</div>
+        <button class="btn btn-p" onclick="openAssetForm()"><i class="fas fa-plus"></i> New Asset</button>
+      </div>
+      <div class="fbar">
+        <input type="text" id="ast-q" placeholder="Search assets..." oninput="loadAssets()">
+        <select id="ast-type" onchange="loadAssets()">
+          <option value="">All Types</option>
+          <option>Server</option><option>Laptop</option><option>Firewall</option>
+          <option>Network</option><option>Cloud</option><option>Other</option>
+        </select>
+      </div>
+      <div class="tc"><table id="ast-tbl">
+        <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>IP</th><th>Owner</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+    <!-- VULNERABILITIES -->
+    <div id="pg-vulnerabilities" class="page hidden">
+      <div class="pg-hd">
+        <div class="pg-title"><i class="fas fa-bug"></i> Vulnerabilities</div>
+        <button class="btn btn-p" onclick="openVulnForm()"><i class="fas fa-plus"></i> New</button>
+      </div>
+      <div class="fbar">
+        <input type="text" id="vul-q" placeholder="Search CVE or description..." oninput="loadVulns()">
+        <select id="vul-risk" onchange="loadVulns()">
+          <option value="">All Risk Levels</option>
+          <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
+        </select>
+      </div>
+      <div class="tc"><table id="vul-tbl">
+        <thead><tr><th>ID</th><th>CVE ID</th><th>Description</th><th>Risk Level</th><th>Discovered</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+    <!-- THREATS -->
+    <div id="pg-threats" class="page hidden">
+      <div class="pg-hd">
+        <div class="pg-title"><i class="fas fa-user-secret"></i> Threat Actors</div>
+        <button class="btn btn-p" onclick="openThreatForm()"><i class="fas fa-plus"></i> New</button>
+      </div>
+      <div class="fbar">
+        <input id="thr-q" placeholder="&#128269; Search name or country..." oninput="loadThreats()">
+        <select id="thr-mot" onchange="loadThreats()">
+          <option value="">All Motivations</option>
+          <option>Financial</option><option>Political</option><option>Espionage</option>
+          <option>Revenge</option><option>Fun</option><option>Other</option>
+        </select>
+      </div>
+      <div class="tc"><table id="thr-tbl">
+        <thead><tr><th>ID</th><th>Name</th><th>Country</th><th>Motivation</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+    <!-- RESPONSES -->
+    <div id="pg-responses" class="page hidden">
+      <div class="pg-hd">
+        <div class="pg-title"><i class="fas fa-shield-virus"></i> Response Actions</div>
+        <button class="btn btn-p" onclick="openResponseForm()"><i class="fas fa-plus"></i> New</button>
+      </div>
+      <div class="fbar">
+        <input id="res-q" placeholder="&#128269; Search description or incident..." oninput="loadResponses()">
+        <select id="res-sta" onchange="loadResponses()">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>In Progress</option><option>Completed</option>
+        </select>
+        <select id="res-pri" onchange="loadResponses()">
+          <option value="">All Priorities</option>
+          <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
+        </select>
+      </div>
+      <div class="tc"><table id="res-tbl">
+        <thead><tr><th>ID</th><th>Incident</th><th>Performed By</th><th>Description</th><th>Date</th><th>Status</th><th>Priority</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+    <!-- LOGS -->
+    <div id="pg-logs" class="page hidden">
+      <div class="pg-hd">
+        <div class="pg-title"><i class="fas fa-list-check"></i> System Logs</div>
+        <button class="btn btn-p" onclick="openLogForm()"><i class="fas fa-plus"></i> Add Log</button>
+      </div>
+      <div class="fbar">
+        <input id="log-q" placeholder="&#128269; Search asset name..." oninput="loadLogs()">
+        <select id="log-evt" onchange="loadLogs()">
+          <option value="">All Events</option>
+          <option>Login</option><option>Logout</option><option>File Access</option>
+          <option>Login Failed</option><option>System Alert</option><option>Other</option>
+        </select>
+        <select id="log-sta" onchange="loadLogs()">
+          <option value="">All Statuses</option>
+          <option>Info</option><option>Warning</option><option>Critical</option>
+        </select>
+      </div>
+      <div class="tc"><table id="log-tbl">
+        <thead><tr><th>ID</th><th>Asset</th><th>Time</th><th>Event</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+    <!-- USERS -->
+    <div id="pg-users" class="page hidden">
+      <div class="pg-hd">
+        <div class="pg-title"><i class="fas fa-users"></i> Users</div>
+      </div>
+      <div class="fbar">
+        <input id="usr-q" placeholder="&#128269; Search name or email..." oninput="loadUsers()">
+        <select id="usr-role" onchange="loadUsers()">
+          <option value="">All Roles</option>
+          <option>Analyst</option><option>Manager</option><option>Admin</option>
+        </select>
+        <select id="usr-dept" onchange="loadUsers()">
+          <option value="">All Departments</option>
+          <option>SOC</option><option>IT</option><option>Security</option>
+          <option>HR</option><option>Finance</option><option>Operations</option>
+        </select>
+      </div>
+      <div class="tc"><table id="usr-tbl">
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal off" id="fModal">
+  <div class="mcontent">
+    <div class="mhdr">
+      <h3 id="fTitle">Form</h3>
+      <button class="cbtn" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div id="fBody"></div>
+  </div>
+</div>
+
+<script>
+const API = {
+  auth:      'api/auth.php',
+  incidents: 'api/incidents.php',
+  assets:    'api/assets.php',
+  data:      'api/data.php',
+};
+let CU = null;
+
+// ── FETCH HELPERS ──
+async function api(url, method = 'GET', body = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  return res.json();
+}
+async function get(url)        { return api(url, 'GET'); }
+async function post(url, data) { return api(url, 'POST', data); }
+async function put(url, data)  { return api(url, 'PUT', data); }
+async function del(url, data)  { return api(url, 'DELETE', data); }
+
+// ── AUTH ──
+function authTab(t) {
+  document.querySelectorAll('.tabs button').forEach((b, i) => b.classList.toggle('on', i === (t === 'login' ? 0 : 1)));
+  document.getElementById('panLogin').classList.toggle('on', t === 'login');
+  document.getElementById('panSignup').classList.toggle('on', t !== 'login');
+}
+
+async function doLogin() {
+  const email = document.getElementById('lEmail').value.trim();
+  const password = document.getElementById('lPass').value;
+  if (!email || !password) { notify('Enter email and password', 'err'); return; }
+  const res = await post(API.auth, { action: 'login', email, password });
+  if (res.error) { notify(res.error, 'err'); return; }
+  CU = res.user;
+  sessionStorage.setItem('cims_user', JSON.stringify(CU));
+  enterApp();
+}
+
+async function doSignup() {
+  const name       = document.getElementById('sName').value.trim();
+  const email      = document.getElementById('sEmail').value.trim();
+  const password   = document.getElementById('sPass').value;
+  const phone      = document.getElementById('sPhone').value.trim();
+  const department = document.getElementById('sDept').value;
+  const role       = document.getElementById('sRole').value;
+  if (!name || !email || !password || !department || !role) { notify('Fill all required fields', 'err'); return; }
+  const btn = document.querySelector('#panSignup .abtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+  const res = await post(API.auth, { action: 'register', name, email, password, phone, department, role });
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+  if (res.error) { notify(res.error, 'err'); return; }
+  ['sName','sEmail','sPass','sPhone'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('sDept').value = '';
+  document.getElementById('sRole').value = '';
+  document.getElementById('lEmail').value = email;
+  document.getElementById('lPass').value  = password;
+  notify('Account created! Logging you in...', 'ok');
+  authTab('login');
+  setTimeout(() => doLogin(), 900);
+}
+
+function enterApp() {
+  document.getElementById('authOverlay').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('uName').textContent = CU.name;
+  document.getElementById('uRole').textContent = CU.role;
+  document.querySelectorAll('#sb a').forEach(a => {
+    a.addEventListener('click', e => { e.preventDefault(); goPage(a.dataset.pg); });
+  });
+  goPage('dashboard');
+}
+
+function doLogout() {
+  sessionStorage.removeItem('cims_user');
+  location.reload();
+}
+
+// ── NAVIGATION ──
+function goPage(pg) {
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('#sb a').forEach(a => a.classList.remove('active'));
+  const el = document.getElementById('pg-' + pg);
+  if (!el) return;
+  el.classList.remove('hidden');
+  const lnk = document.querySelector(`[data-pg="${pg}"]`);
+  if (lnk) lnk.classList.add('active');
+  const renders = {
+    dashboard: loadDashboard, incidents: loadIncidents,
+    assets: loadAssets, vulnerabilities: loadVulns,
+    threats: loadThreats, responses: loadResponses,
+    logs: loadLogs, users: loadUsers
+  };
+  if (renders[pg]) renders[pg]();
+}
+function toggleSidebar() { document.getElementById('sb').classList.toggle('open'); }
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const d = await get(`${API.data}?entity=dashboard`);
+  document.getElementById('d-inc').textContent     = d.total_incidents;
+  document.getElementById('d-crit').textContent    = d.critical_incidents;
+  document.getElementById('d-assets').textContent  = d.total_assets;
+  document.getElementById('d-vulns').textContent   = d.total_vulnerabilities;
+  document.getElementById('d-threats').textContent = d.total_threats;
+  document.getElementById('d-users').textContent   = d.active_users;
+  document.querySelector('#dash-tbl tbody').innerHTML = (d.recent || []).map(i => `
+    <tr>
+      <td><span class="idbadge">#${String(i.incident_id).slice(-5)}</span></td>
+      <td><strong>${i.title}</strong></td>
+      <td>${sevBadge(i.severity)}</td>
+      <td>${staBadge(i.status)}</td>
+      <td>${i.detected_date || '—'}</td>
+    </tr>`).join('') || `<tr><td colspan="5" style="text-align:center">No incidents</td></tr>`;
+}
+
+// ── INCIDENTS ──
+async function loadIncidents() {
+  const q   = document.getElementById('inc-q')?.value || '';
+  const sev = document.getElementById('inc-sev')?.value || '';
+  const sta = document.getElementById('inc-sta')?.value || '';
+  const rows = await get(`${API.incidents}?search=${encodeURIComponent(q)}&severity=${sev}&status=${encodeURIComponent(sta)}`);
+  document.querySelector('#inc-tbl tbody').innerHTML = rows.length ? rows.map(i => `
+    <tr>
+      <td><span class="idbadge">#${String(i.incident_id).slice(-5)}</span></td>
+      <td><strong>${i.title}</strong></td>
+      <td>${i.category || '—'}</td>
+      <td>${sevBadge(i.severity)}</td>
+      <td>${staBadge(i.status)}</td>
+      <td>${i.asset_name || '—'}</td>
+      <td>${i.reporter || '—'}</td>
+      <td>${i.detected_date || '—'}</td>
+      <td><span class="idbadge">v${i.version || 1}</span></td>
+      <td>
+        <button class="ab" onclick='viewIncident(${JSON.stringify(i)})'><i class="fas fa-eye"></i></button>
+        <button class="ab" onclick="openIncidentForm(${i.incident_id})"><i class="fas fa-pen"></i></button>
+        <button class="ab d" onclick="deleteRecord('${API.incidents}',{incident_id:${i.incident_id}},loadIncidents)"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('')
+  : `<tr><td colspan="10"><div class="empty"><i class="fas fa-triangle-exclamation"></i>No incidents</div></td></tr>`;
+}
+
+function viewIncident(i) {
+  document.getElementById('fTitle').textContent = 'Incident Detail';
+  document.getElementById('fBody').innerHTML = `
+    <div class="dgrid">
+      <div class="di"><label>Title</label><span>${i.title}</span></div>
+      <div class="di"><label>Category</label><span>${i.category || '—'}</span></div>
+      <div class="di"><label>Severity</label><span>${sevBadge(i.severity)}</span></div>
+      <div class="di"><label>Status</label><span>${staBadge(i.status)}</span></div>
+      <div class="di"><label>Asset</label><span>${i.asset_name || '—'}</span></div>
+      <div class="di"><label>Reporter</label><span>${i.reporter || '—'}</span></div>
+      <div class="di"><label>Detected Date</label><span>${i.detected_date || '—'}</span></div>
+      <div class="di"><label>Version</label><span>v${i.version || 1}</span></div>
+      <div class="di full"><label>Description</label><span>${i.description || '—'}</span></div>
+    </div>`;
+  openModal();
+}
+
+async function openIncidentForm(editId = null) {
+  const [assets, vulns, users, threats] = await Promise.all([
+    get(`${API.assets}?`),
+    get(`${API.data}?entity=vulnerabilities`),
+    get(`${API.data}?entity=users`),
+    get(`${API.data}?entity=threats`),
+  ]);
+  let d = null;
+  if (editId) { const rows = await get(`${API.incidents}?`); d = rows.find(r => r.incident_id == editId); }
+  document.getElementById('fTitle').textContent = editId ? 'Edit Incident' : 'New Incident';
+  document.getElementById('fBody').innerHTML = `
+    <div class="fgrid">
+      <div class="fg2 full"><label>Title *</label><input id="fi_title" value="${d?.title || ''}"></div>
+      <div class="fg2"><label>Severity</label><select id="fi_sev">
+        ${['Low','Medium','High','Critical'].map(s => `<option ${d?.severity===s?'selected':''}>${s}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Status</label><select id="fi_sta">
+        ${['Open','In Progress','Resolved'].map(s => `<option ${d?.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Category</label><select id="fi_cat">
+        <option value="">—</option>
+        ${['Malware','Phishing','DDoS','Data Breach','Ransomware','Insider Threat','Zero-Day'].map(c => `<option ${d?.category===c?'selected':''}>${c}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Detected Date</label><input id="fi_date" type="date" value="${d?.detected_date || new Date().toISOString().split('T')[0]}"></div>
+      <div class="fg2"><label>Asset</label><select id="fi_asset">
+        <option value="">— None —</option>
+        ${assets.map(a => `<option value="${a.asset_id}" ${d?.asset_id==a.asset_id?'selected':''}>${a.asset_name}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Reported By</label><select id="fi_user">
+        <option value="">— Select —</option>
+        ${users.map(u => `<option value="${u.user_id}" ${d?.reported_by==u.user_id?'selected':''}>${u.name}</option>`).join('')}
+      </select></div>
+      <div class="fg2 full"><label>Description</label><textarea id="fi_desc">${d?.description || ''}</textarea></div>
+      <div class="fg2"><label>Vulnerability (link)</label><select id="fi_vuln">
+        <option value="">— None —</option>
+        ${vulns.map(v => `<option value="${v.vulnerability_id}">${v.cve_id}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Threat Actor (link)</label><select id="fi_actor">
+        <option value="">— None —</option>
+        ${threats.map(t => `<option value="${t.threat_actor_id}">${t.name}</option>`).join('')}
+      </select></div>
+    </div>
+    <div class="fact">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveIncident(${editId || 'null'}, ${d?.version || 1})"><i class="fas fa-save"></i> Save</button>
+    </div>`;
+  openModal();
+}
+
+async function saveIncident(editId, version) {
+  const body = {
+    title: document.getElementById('fi_title').value.trim(),
+    severity: document.getElementById('fi_sev').value,
+    status: document.getElementById('fi_sta').value,
+    category: document.getElementById('fi_cat').value || null,
+    detected_date: document.getElementById('fi_date').value,
+    asset_id: parseInt(document.getElementById('fi_asset').value) || null,
+    reported_by: parseInt(document.getElementById('fi_user').value) || CU.user_id,
+    description: document.getElementById('fi_desc').value.trim(),
+    vulnerability_id: parseInt(document.getElementById('fi_vuln').value) || null,
+    threat_actor_id: parseInt(document.getElementById('fi_actor').value) || null,
+  };
+  if (!body.title) { notify('Title required', 'err'); return; }
+  let res;
+  if (editId) {
+    body.incident_id = editId; body.version = version;
+    res = await put(API.incidents, body);
+    if (res.error === 'No rows updated — possible version conflict') {
+      notify('⚠️ Version conflict! Please reload.', 'err'); return;
+    }
+  } else {
+    res = await post(API.incidents, body);
+  }
+  if (res.error) { notify(res.error, 'err'); return; }
+  notify(editId ? 'Incident updated' : 'Incident added', 'ok');
+  closeModal(); loadIncidents();
+}
+
+// ── ASSETS ──
+async function loadAssets() {
+  const q    = document.getElementById('ast-q')?.value || '';
+  const type = document.getElementById('ast-type')?.value || '';
+  const rows = await get(`${API.assets}?search=${encodeURIComponent(q)}&type=${type}`);
+  document.querySelector('#ast-tbl tbody').innerHTML = rows.length ? rows.map(a => `
+    <tr>
+      <td><span class="idbadge">#${String(a.asset_id).slice(-5)}</span></td>
+      <td><strong>${a.asset_name}</strong></td>
+      <td>${a.asset_type}</td>
+      <td><code>${a.ip_address || '—'}</code></td>
+      <td>${a.owner_name || '—'}</td>
+      <td>${a.status || 'Active'}</td>
+      <td>
+        <button class="ab" onclick="openAssetForm(${a.asset_id})"><i class="fas fa-pen"></i></button>
+        <button class="ab d" onclick="deleteRecord('${API.assets}',{asset_id:${a.asset_id}},loadAssets)"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('')
+  : `<tr><td colspan="7"><div class="empty"><i class="fas fa-server"></i>No assets</div></td></tr>`;
+}
+
+async function openAssetForm(editId = null) {
+  const users = await get(`${API.data}?entity=users`);
+  let d = null;
+  if (editId) { const rows = await get(`${API.assets}?`); d = rows.find(r => r.asset_id == editId); }
+  document.getElementById('fTitle').textContent = editId ? 'Edit Asset' : 'New Asset';
+  document.getElementById('fBody').innerHTML = `
+    <div class="fgrid">
+      <div class="fg2"><label>Asset Name *</label><input id="fa_name" value="${d?.asset_name || ''}"></div>
+      <div class="fg2"><label>Type</label><select id="fa_type">
+        ${['Server','Laptop','Firewall','Network','Cloud','Other'].map(t => `<option ${d?.asset_type===t?'selected':''}>${t}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>IP Address</label><input id="fa_ip" placeholder="192.168.x.x" value="${d?.ip_address || ''}"></div>
+      <div class="fg2"><label>Status</label><select id="fa_status">
+        ${['Active','Inactive'].map(s => `<option ${d?.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></div>
+      <div class="fg2 full"><label>Owner</label><select id="fa_owner">
+        <option value="">— None —</option>
+        ${users.map(u => `<option value="${u.user_id}" ${d?.owner_id==u.user_id?'selected':''}>${u.name} (${u.department})</option>`).join('')}
+      </select></div>
+    </div>
+    <div class="fact">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveAsset(${editId || 'null'})"><i class="fas fa-save"></i> Save</button>
+    </div>`;
+  openModal();
+}
+
+async function saveAsset(editId) {
+  const body = {
+    asset_name: document.getElementById('fa_name').value.trim(),
+    asset_type: document.getElementById('fa_type').value,
+    ip_address: document.getElementById('fa_ip').value.trim() || null,
+    status: document.getElementById('fa_status').value,
+    owner_id: parseInt(document.getElementById('fa_owner').value) || null,
+  };
+  if (!body.asset_name) { notify('Name required', 'err'); return; }
+  let res;
+  if (editId) { body.asset_id = editId; res = await put(API.assets, body); }
+  else res = await post(API.assets, body);
+  if (res.error) { notify(res.error, 'err'); return; }
+  notify(editId ? 'Asset updated' : 'Asset added', 'ok');
+  closeModal(); loadAssets();
+}
+
+// ── VULNERABILITIES ──
+async function loadVulns() {
+  const q    = document.getElementById('vul-q')?.value || '';
+  const risk = document.getElementById('vul-risk')?.value || '';
+  const rows = await get(`${API.data}?entity=vulnerabilities&search=${encodeURIComponent(q)}&risk=${risk}`);
+  document.querySelector('#vul-tbl tbody').innerHTML = rows.length ? rows.map(v => `
+    <tr>
+      <td><span class="idbadge">#${String(v.vulnerability_id).slice(-5)}</span></td>
+      <td><strong>${v.cve_id}</strong></td>
+      <td>${v.description || '—'}</td>
+      <td>${sevBadge(v.risk_level)}</td>
+      <td>${v.discovered_date || '—'}</td>
+      <td>
+        <button class="ab" onclick="openVulnForm(${v.vulnerability_id})"><i class="fas fa-pen"></i></button>
+        <button class="ab d" onclick="deleteRecord('${API.data}?entity=vulnerabilities',{vulnerability_id:${v.vulnerability_id}},loadVulns)"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('')
+  : `<tr><td colspan="6"><div class="empty"><i class="fas fa-bug"></i>No vulnerabilities</div></td></tr>`;
+}
+
+async function openVulnForm(editId = null) {
+  let d = null;
+  if (editId) { const rows = await get(`${API.data}?entity=vulnerabilities`); d = rows.find(r => r.vulnerability_id == editId); }
+  document.getElementById('fTitle').textContent = editId ? 'Edit Vulnerability' : 'New Vulnerability';
+  document.getElementById('fBody').innerHTML = `
+    <div class="fgrid">
+      <div class="fg2"><label>CVE ID *</label><input id="fv_cve" value="${d?.cve_id || ''}"></div>
+      <div class="fg2"><label>Risk Level</label><select id="fv_risk">
+        ${['Low','Medium','High','Critical'].map(r => `<option ${d?.risk_level===r?'selected':''}>${r}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Discovered Date</label><input id="fv_disc" type="date" value="${d?.discovered_date || new Date().toISOString().split('T')[0]}"></div>
+      <div class="fg2 full"><label>Description</label><textarea id="fv_desc">${d?.description || ''}</textarea></div>
+    </div>
+    <div class="fact">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveVuln(${editId || 'null'})"><i class="fas fa-save"></i> Save</button>
+    </div>`;
+  openModal();
+}
+
+async function saveVuln(editId) {
+  const body = { cve_id: document.getElementById('fv_cve').value.trim(), risk_level: document.getElementById('fv_risk').value, discovered_date: document.getElementById('fv_disc').value, description: document.getElementById('fv_desc').value.trim() };
+  if (!body.cve_id) { notify('CVE ID required', 'err'); return; }
+  let res;
+  if (editId) { body.vulnerability_id = editId; res = await put(`${API.data}?entity=vulnerabilities`, body); }
+  else { body.entity = 'vulnerabilities'; res = await post(API.data, body); }
+  if (res.error) { notify(res.error, 'err'); return; }
+  notify(editId ? 'Vulnerability updated' : 'Vulnerability added', 'ok'); closeModal(); loadVulns();
+}
+
+// ── THREATS ──
+async function loadThreats() {
+  const q   = document.getElementById('thr-q')?.value.toLowerCase() || '';
+  const mot = document.getElementById('thr-mot')?.value || '';
+  let rows = await get(`${API.data}?entity=threats`);
+  if (q)   rows = rows.filter(t => t.name?.toLowerCase().includes(q) || t.origin_country?.toLowerCase().includes(q));
+  if (mot) rows = rows.filter(t => t.motivation === mot);
+  document.querySelector('#thr-tbl tbody').innerHTML = rows.length ? rows.map(t => `
+    <tr>
+      <td><span class="idbadge">#${String(t.threat_actor_id).slice(-5)}</span></td>
+      <td><strong>${t.name}</strong></td>
+      <td>${t.origin_country || '—'}</td>
+      <td>${t.motivation || '—'}</td>
+      <td>
+        <button class="ab" onclick="openThreatForm(${t.threat_actor_id})"><i class="fas fa-pen"></i></button>
+        <button class="ab d" onclick="deleteRecord('${API.data}?entity=threats',{threat_actor_id:${t.threat_actor_id}},loadThreats)"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('')
+  : `<tr><td colspan="5"><div class="empty"><i class="fas fa-user-secret"></i>No threat actors</div></td></tr>`;
+}
+
+async function openThreatForm(editId = null) {
+  let d = null;
+  if (editId) { const rows = await get(`${API.data}?entity=threats`); d = rows.find(r => r.threat_actor_id == editId); }
+  document.getElementById('fTitle').textContent = editId ? 'Edit Threat Actor' : 'New Threat Actor';
+  document.getElementById('fBody').innerHTML = `
+    <div class="fgrid">
+      <div class="fg2"><label>Name *</label><input id="ft_name" value="${d?.name || ''}"></div>
+      <div class="fg2"><label>Country</label><input id="ft_country" value="${d?.origin_country || ''}"></div>
+      <div class="fg2 full"><label>Motivation</label><select id="ft_mot">
+        ${['Financial','Political','Espionage','Revenge','Fun','Other'].map(m => `<option ${d?.motivation===m?'selected':''}>${m}</option>`).join('')}
+      </select></div>
+    </div>
+    <div class="fact">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveThreat(${editId || 'null'})"><i class="fas fa-save"></i> Save</button>
+    </div>`;
+  openModal();
+}
+
+async function saveThreat(editId) {
+  const body = { name: document.getElementById('ft_name').value.trim(), origin_country: document.getElementById('ft_country').value, motivation: document.getElementById('ft_mot').value };
+  if (!body.name) { notify('Name required', 'err'); return; }
+  let res;
+  if (editId) { body.threat_actor_id = editId; res = await put(`${API.data}?entity=threats`, body); }
+  else { body.entity = 'threats'; res = await post(API.data, body); }
+  if (res.error) { notify(res.error, 'err'); return; }
+  notify(editId ? 'Threat actor updated' : 'Threat actor added', 'ok'); closeModal(); loadThreats();
+}
+
+// ── RESPONSE ACTIONS ──
+async function loadResponses() {
+  const q   = document.getElementById('res-q')?.value.toLowerCase() || '';
+  const sta = document.getElementById('res-sta')?.value || '';
+  const pri = document.getElementById('res-pri')?.value || '';
+  let rows = await get(`${API.data}?entity=responses`);
+  if (q)   rows = rows.filter(r => r.action_description?.toLowerCase().includes(q) || r.incident_title?.toLowerCase().includes(q));
+  if (sta) rows = rows.filter(r => r.status === sta);
+  if (pri) rows = rows.filter(r => r.priority === pri);
+  document.querySelector('#res-tbl tbody').innerHTML = rows.length ? rows.map(r => `
+    <tr>
+      <td><span class="idbadge">#${String(r.action_id).slice(-5)}</span></td>
+      <td>${r.incident_title || '—'}</td>
+      <td>${r.performer || '—'}</td>
+      <td>${r.action_description}</td>
+      <td>${r.action_date || '—'}</td>
+      <td>${staBadge(r.status)}</td>
+      <td>${sevBadge(r.priority)}</td>
+      <td>
+        <button class="ab" onclick="openResponseForm(${r.action_id})"><i class="fas fa-pen"></i></button>
+        <button class="ab d" onclick="deleteRecord('${API.data}?entity=responses',{action_id:${r.action_id}},loadResponses)"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('')
+  : `<tr><td colspan="8"><div class="empty">No response actions</div></td></tr>`;
+}
+
+async function openResponseForm(editId = null) {
+  const [incidents, users] = await Promise.all([
+    get(`${API.incidents}?`),
+    get(`${API.data}?entity=users`),
+  ]);
+  let d = null;
+  if (editId) { const rows = await get(`${API.data}?entity=responses`); d = rows.find(r => r.action_id == editId); }
+  document.getElementById('fTitle').textContent = editId ? 'Edit Response Action' : 'New Response Action';
+  document.getElementById('fBody').innerHTML = `
+    <div class="fgrid">
+      <div class="fg2 full"><label>Incident *</label><select id="fr_inc">
+        <option value="">— Select —</option>
+        ${incidents.map(i => `<option value="${i.incident_id}" ${d?.incident_id==i.incident_id?'selected':''}>${i.title}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Performed By</label><select id="fr_by">
+        <option value="">— Select —</option>
+        ${users.map(u => `<option value="${u.user_id}" ${d?.performed_by==u.user_id?'selected':''}>${u.name}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Date</label><input id="fr_date" type="date" value="${d?.action_date || new Date().toISOString().split('T')[0]}"></div>
+      <div class="fg2"><label>Status</label><select id="fr_sta">
+        ${['Pending','In Progress','Completed'].map(s => `<option ${d?.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Priority</label><select id="fr_pri">
+        ${['Low','Medium','High','Critical'].map(p => `<option ${d?.priority===p?'selected':''}>${p}</option>`).join('')}
+      </select></div>
+      <div class="fg2 full"><label>Description *</label><textarea id="fr_desc">${d?.action_description || ''}</textarea></div>
+    </div>
+    <div class="fact">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveResponse(${editId || 'null'})"><i class="fas fa-save"></i> Save</button>
+    </div>`;
+  openModal();
+}
+
+async function saveResponse(editId = null) {
+  const body = {
+    entity: 'responses',
+    incident_id: parseInt(document.getElementById('fr_inc').value) || null,
+    performed_by: parseInt(document.getElementById('fr_by').value) || CU.user_id,
+    action_description: document.getElementById('fr_desc').value.trim(),
+    action_date: document.getElementById('fr_date').value,
+    status: document.getElementById('fr_sta').value,
+    priority: document.getElementById('fr_pri').value,
+  };
+  if (!body.incident_id || !body.action_description) { notify('Incident and description required', 'err'); return; }
+  let res;
+  if (editId) { body.action_id = editId; res = await put(`${API.data}?entity=responses`, body); }
+  else res = await post(API.data, body);
+  if (res.error) { notify(res.error, 'err'); return; }
+  notify(editId ? 'Response updated' : 'Response action added', 'ok');
+  closeModal(); loadResponses();
+}
+
+// ── LOGS ──
+async function loadLogs() {
+  const q   = document.getElementById('log-q')?.value.toLowerCase() || '';
+  const evt = document.getElementById('log-evt')?.value || '';
+  const sta = document.getElementById('log-sta')?.value || '';
+  let rows = await get(`${API.data}?entity=logs`);
+  if (q)   rows = rows.filter(l => l.asset_name?.toLowerCase().includes(q));
+  if (evt) rows = rows.filter(l => l.event_type === evt);
+  if (sta) rows = rows.filter(l => l.status === sta);
+  document.querySelector('#log-tbl tbody').innerHTML = rows.length ? rows.map(l => `
+    <tr>
+      <td><span class="idbadge">#${String(l.log_id).slice(-5)}</span></td>
+      <td>${l.asset_name || '—'}</td>
+      <td>${l.log_time || '—'}</td>
+      <td>${l.event_type || '—'}</td>
+      <td>${staBadge(l.status)}</td>
+      <td>
+        <button class="ab" onclick="openLogForm(${l.log_id})"><i class="fas fa-pen"></i></button>
+        <button class="ab d" onclick="deleteRecord('${API.data}?entity=logs',{log_id:${l.log_id}},loadLogs)"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('')
+  : `<tr><td colspan="6"><div class="empty">No logs</div></td></tr>`;
+}
+
+async function openLogForm(editId = null) {
+  const assets = await get(`${API.assets}?`);
+  let d = null;
+  if (editId) { const rows = await get(`${API.data}?entity=logs`); d = rows.find(l => l.log_id == editId); }
+  document.getElementById('fTitle').textContent = editId ? 'Edit Log Entry' : 'Add Log Entry';
+  document.getElementById('fBody').innerHTML = `
+    <div class="fgrid">
+      <div class="fg2"><label>Asset *</label><select id="fl_asset">
+        <option value="">— Select —</option>
+        ${assets.map(a => `<option value="${a.asset_id}" ${d?.asset_id==a.asset_id?'selected':''}>${a.asset_name}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Event Type</label><select id="fl_evt">
+        ${['Login','Logout','File Access','Login Failed','System Alert','Other'].map(e => `<option ${d?.event_type===e?'selected':''}>${e}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Status</label><select id="fl_sta">
+        ${['Info','Warning','Critical'].map(s => `<option ${d?.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></div>
+    </div>
+    <div class="fact">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveLog(${editId || 'null'})"><i class="fas fa-save"></i> Save</button>
+    </div>`;
+  openModal();
+}
+
+async function saveLog(editId = null) {
+  const body = {
+    entity: 'logs',
+    asset_id: parseInt(document.getElementById('fl_asset').value) || null,
+    event_type: document.getElementById('fl_evt').value,
+    status: document.getElementById('fl_sta').value,
+  };
+  if (!body.asset_id) { notify('Asset required', 'err'); return; }
+  let res;
+  if (editId) { body.log_id = editId; res = await put(`${API.data}?entity=logs`, body); }
+  else res = await post(API.data, body);
+  if (res.error) { notify(res.error, 'err'); return; }
+  notify(editId ? 'Log updated' : 'Log added', 'ok');
+  closeModal(); loadLogs();
+}
+
+// ── USERS ──
+async function loadUsers() {
+  const q    = document.getElementById('usr-q')?.value.toLowerCase() || '';
+  const role = document.getElementById('usr-role')?.value || '';
+  const dept = document.getElementById('usr-dept')?.value || '';
+  let rows = await get(`${API.data}?entity=users`);
+  if (q)    rows = rows.filter(u => u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q));
+  if (role) rows = rows.filter(u => u.role === role);
+  if (dept) rows = rows.filter(u => u.department === dept);
+  document.querySelector('#usr-tbl tbody').innerHTML = rows.length ? rows.map(u => `
+    <tr>
+      <td><span class="idbadge">#${String(u.user_id).slice(-5)}</span></td>
+      <td><strong>${u.name}</strong></td>
+      <td>${u.email}</td>
+      <td><span class="badge b-prog">${u.role}</span></td>
+      <td>${u.department || '—'}</td>
+      <td>${u.status === 'Active' ? '<span class="badge b-res">Active</span>' : '<span class="badge b-cls">Inactive</span>'}</td>
+      <td>
+        <button class="ab" onclick="openUserForm(${u.user_id})"><i class="fas fa-pen"></i></button>
+        <button class="ab d" onclick="deleteRecord('${API.data}?entity=users',{user_id:${u.user_id}},loadUsers)"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('')
+  : `<tr><td colspan="7"><div class="empty">No users</div></td></tr>`;
+}
+
+async function openUserForm(editId) {
+  const rows = await get(`${API.data}?entity=users`);
+  const d = rows.find(u => u.user_id == editId);
+  if (!d) { notify('User not found', 'err'); return; }
+  document.getElementById('fTitle').textContent = 'Edit User';
+  document.getElementById('fBody').innerHTML = `
+    <div class="fgrid">
+      <div class="fg2"><label>Full Name *</label><input id="fu_name" value="${d.name || ''}"></div>
+      <div class="fg2"><label>Email *</label><input id="fu_email" type="email" value="${d.email || ''}"></div>
+      <div class="fg2"><label>Role</label><select id="fu_role">
+        ${['Analyst','Manager','Admin'].map(r => `<option ${d.role===r?'selected':''}>${r}</option>`).join('')}
+      </select></div>
+      <div class="fg2"><label>Department</label><select id="fu_dept">
+        ${['SOC','IT','Security','HR','Finance','Operations'].map(dep => `<option ${d.department===dep?'selected':''}>${dep}</option>`).join('')}
+      </select></div>
+      <div class="fg2 full"><label>Phone</label><input id="fu_phone" value="${d.phone_number || ''}"></div>
+    </div>
+    <div class="fact">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveUser(${editId})"><i class="fas fa-save"></i> Save</button>
+    </div>`;
+  openModal();
+}
+
+async function saveUser(editId) {
+  const body = {
+    entity: 'users',
+    user_id: editId,
+    name: document.getElementById('fu_name').value.trim(),
+    email: document.getElementById('fu_email').value.trim(),
+    role: document.getElementById('fu_role').value,
+    department: document.getElementById('fu_dept').value,
+    phone_number: document.getElementById('fu_phone').value.trim(),
+  };
+  if (!body.name || !body.email) { notify('Name and email required', 'err'); return; }
+  const res = await put(`${API.data}?entity=users`, body);
+  if (res.error) { notify(res.error, 'err'); return; }
+  notify('User updated', 'ok'); closeModal(); loadUsers();
+}
+
+// ── GENERIC DELETE ──
+async function deleteRecord(url, body, reloadFn) {
+  if (!confirm('Delete this record?')) return;
+  const res = await del(url, body);
+  if (res.error) { notify(res.error, 'err'); return; }
+  notify('Deleted', 'ok');
+  if (reloadFn) reloadFn();
+}
+
+// ── MODAL ──
+function openModal()  { document.getElementById('fModal').classList.remove('off'); }
+function closeModal() { document.getElementById('fModal').classList.add('off'); }
+
+// ── BADGE HELPERS ──
+function sevBadge(s) {
+  const m = { Low:'b-low', Medium:'b-med', High:'b-high', Critical:'b-crit' };
+  return `<span class="badge ${m[s]||''}">${s||'—'}</span>`;
+}
+function staBadge(s) {
+  const m = { 'Open':'b-open','In Progress':'b-prog','Resolved':'b-res','Completed':'b-res','Pending':'b-cls' };
+  return `<span class="badge ${m[s]||'b-cls'}">${s||'—'}</span>`;
+}
+
+// ── NOTIFY ──
+function notify(msg, type = 'ok') {
+  const n = document.createElement('div');
+  n.className = `notif ${type}`;
+  n.innerHTML = `<i class="fas fa-${type === 'ok' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3000);
+}
+
+// ── INIT ──
+const saved = sessionStorage.getItem('cims_user');
+if (saved) { CU = JSON.parse(saved); enterApp(); }
+</script>
+</body>
+</html>
