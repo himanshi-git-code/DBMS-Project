@@ -1,85 +1,71 @@
 # CIMS — Cybersecurity Incident Management System
-
-A full-stack web application for managing cybersecurity incidents, assets, vulnerabilities, 
-and threat actors — built with **PHP**, **MySQL**, and **Vanilla JavaScript**.
-
-Developed as a DBMS course project.
+## PHP + MySQL Setup Guide
 
 ---
 
-## Features
-
-- 🔐 **Authentication** — Login & Register with role-based access (Admin / Analyst)
-- 🚨 **Incident Management** — Create, update, delete, and filter incidents by severity/status
-- 🖥️ **Asset Tracking** — Manage organizational assets and link them to incidents
-- ⚠️ **Vulnerability & Threat Monitoring** — Track vulnerabilities and threat actors
-- 📊 **Dashboard** — Live stats via stored procedure `sp_dashboard_stats`
-- 📜 **System Logs** — Audit trail of all activity
-- 🔒 **Optimistic Locking** — Prevents concurrent update conflicts using version field
-
----
-
-## Tech Stack
-
-| Layer      | Technology          |
-|------------|---------------------|
-| Frontend   | HTML, CSS, JavaScript |
-| Backend    | PHP (REST API)      |
-| Database   | MySQL               |
-| Server     | Apache via XAMPP    |
-
----
-
-## SQL Features Used
-
-- **Views** — `vw_incident_summary`, `vw_asset_owner`, `vw_critical_open`, etc.
-- **Stored Procedures** — `sp_add_incident`, `sp_get_incidents`, `sp_dashboard_stats`
-- **Triggers** — `update_version` auto-increments version on every UPDATE
-- **Transactions** — Atomic multi-table inserts in `sp_add_incident`
-- **Cascade Deletes** — Junction table rows removed automatically
-- **Indexes** — On severity, status, asset type for faster queries
-
----
-
-## How to Run (XAMPP)
-
-1. **Download & install** [XAMPP](https://www.apachefriends.org/)
-2. **Copy project** into `C:/xampp/htdocs/cims/`
-3. **Start** Apache and MySQL from XAMPP Control Panel
-4. **Open phpMyAdmin** → `http://localhost/phpmyadmin`
-5. Create database and run your SQL script:
-```sql
-   CREATE DATABASE DBMS_project;
-   USE DBMS_project;
-   -- Run your full SQL file here
-```
-6. Edit `includes/db.php` with your MySQL credentials (default: root, no password)
-7. Open browser → `http://localhost/cims/`
-
----
-
-## Demo Login Credentials
-
-| Email              | Password | Role    |
-|--------------------|----------|---------|
-| neha@mail.com      | pass123  | Admin   |
-| karan@mail.com     | pass123  | Analyst |
-| himanshi@mail.com  | pass123  | Admin   |
-
----
-
-## Project Structure
+## Folder Structure
 
 ```
 cims/
-├── index.html        ← Main frontend (SPA)
-├── style.css         ← Styling
-├── script.js         ← All frontend logic
+├── index.html          ← Main frontend (your HTML/CSS/JS)
+├── style.css           ← Your CSS (paste from original file)
 ├── includes/
-│   └── db.php        ← Database connection config
+│   └── db.php          ← DB connection config
 └── api/
-    ├── auth.php      ← Login / Register
-    ├── incidents.php ← Incidents CRUD
-    ├── assets.php    ← Assets CRUD
-    └── data.php      ← Vulnerabilities, Threats, Responses, Logs, Dashboard
+    ├── auth.php        ← Login / Register
+    ├── incidents.php   ← Incidents CRUD
+    ├── assets.php      ← Assets CRUD
+    └── data.php        ← Vulns, Threats, Responses, Logs, Users, Dashboard
 ```
+
+---
+
+## How to Run
+
+We used **XAMPP** to run this project locally on a Windows machine.
+
+### 1. Install XAMPP
+Download and install [XAMPP](https://www.apachefriends.org/) — it gives you Apache (web server)
+and MySQL together in one package, no separate setup needed.
+
+### 2. Place the Project Files
+Copy the `cims/` folder into XAMPP's `htdocs` directory:
+```
+C:/xampp/htdocs/cims/
+```
+This is the folder Apache serves files from — anything placed here is accessible via `localhost`.
+
+### 3. Start Apache and MySQL
+Open the **XAMPP Control Panel** and click **Start** next to both **Apache** and **MySQL**.
+Apache runs the PHP backend, MySQL runs the database.
+
+### 4. Set Up the Database
+Open your browser and go to `http://localhost/phpmyadmin` — this is MySQL's visual interface
+that comes bundled with XAMPP. From here:
+- Create a new database named `DBMS_project`
+- Import/run the SQL script to create all tables, views, stored procedures, triggers, and sample data
+
+### 5. Configure DB Connection
+Open `includes/db.php` and set your credentials. By default XAMPP uses:
+```php
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');       // your MySQL username
+define('DB_PASS', '');           // your MySQL password (empty by default in XAMPP)
+define('DB_NAME', 'DBMS_project');
+```
+
+### 6. Open in Browser
+Navigate to `http://localhost/cims/` — the app loads from Apache and connects to MySQL in the background.
+
+---
+
+
+## SQL Features Used
+
+- **Views:** `vw_incident_summary`, `vw_asset_owner`, `vw_response_detail`, `vw_critical_open`
+- **Stored Procedures:** `sp_add_incident`, `sp_get_incidents`, `sp_dashboard_stats`
+- **Trigger:** `update_version` fires on every `UPDATE Incidents` — auto-increments version
+- **Transactions:** Used in `sp_add_incident` for atomic multi-table inserts
+- **Optimistic Locking:** PUT /incidents checks `version` before updating
+- **Cascade Deletes:** Deleting incident removes junction table rows automatically
+- **Indexes:** `idx_incident_severity`, `idx_incident_status`, `idx_asset_type`, etc.
