@@ -1,62 +1,34 @@
 # CIMS — Cybersecurity Incident Management System
-## PHP + MySQL Setup Guide
-
----
-
-## Folder Structure
-
-```
-cims/
-├── index.html          ← Main frontend (your HTML/CSS/JS)
-├── style.css           ← Your CSS (paste from original file)
-├── includes/
-│   └── db.php          ← DB connection config
-└── api/
-    ├── auth.php        ← Login / Register
-    ├── incidents.php   ← Incidents CRUD
-    ├── assets.php      ← Assets CRUD
-    └── data.php        ← Vulns, Threats, Responses, Logs, Users, Dashboard
-```
 
 ---
 
 ## How to Run
 
-We used **XAMPP** to run this project locally on a Windows machine.
+To run this project locally, we used **XAMPP** — a free tool that sets up Apache 
+and MySQL on your Windows machine without any manual configuration.
 
-### 1. Install XAMPP
-Download and install [XAMPP](https://www.apachefriends.org/) — it gives you Apache (web server)
-and MySQL together in one package, no separate setup needed.
+**First**, we downloaded and installed XAMPP from [apachefriends.org](https://www.apachefriends.org/). 
+Once installed, we opened the **XAMPP Control Panel** and clicked **Start** next to both 
+**Apache** and **MySQL** — Apache serves our PHP files, MySQL runs the database.
 
-### 2. Place the Project Files
-Copy the `cims/` folder into XAMPP's `htdocs` directory:
+**Then**, we copied the `cims/` folder into XAMPP's `htdocs` directory:
 ```
 C:/xampp/htdocs/cims/
 ```
-This is the folder Apache serves files from — anything placed here is accessible via `localhost`.
+`htdocs` is the root folder that Apache serves — anything placed here becomes 
+accessible via `http://localhost/`.
 
-### 3. Start Apache and MySQL
-Open the **XAMPP Control Panel** and click **Start** next to both **Apache** and **MySQL**.
-Apache runs the PHP backend, MySQL runs the database.
+**Next**, we set up the database. We opened `http://localhost/phpmyadmin` in the 
+browser — phpMyAdmin is MySQL's visual interface that comes bundled with XAMPP. 
+We created a new database named `DBMS_project` and ran our SQL script to generate 
+all tables, views, stored procedures, triggers, and sample data.
 
-### 4. Set Up the Database
-Open your browser and go to `http://localhost/phpmyadmin` — this is MySQL's visual interface
-that comes bundled with XAMPP. From here:
-- Create a new database named `DBMS_project`
-- Import/run the SQL script to create all tables, views, stored procedures, triggers, and sample data
+**After that**, we updated `includes/db.php` with the database credentials. 
+XAMPP's default MySQL setup uses `root` as the username and an empty password, 
+so no changes were needed there.
 
-### 5. Configure DB Connection
-Open `includes/db.php` and set your credentials. By default XAMPP uses:
-```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');       // your MySQL username
-define('DB_PASS', '');           // your MySQL password (empty by default in XAMPP)
-define('DB_NAME', 'DBMS_project');
-```
-
-### 6. Open in Browser
-Navigate to `http://localhost/cims/` — the app loads from Apache and connects to MySQL in the background.
-
+**Finally**, we opened `http://localhost/cims/` in the browser — the frontend 
+loaded through Apache and all API calls connected to MySQL in the background.
 ---
 
 
